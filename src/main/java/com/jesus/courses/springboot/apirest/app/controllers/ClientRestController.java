@@ -3,6 +3,7 @@ package com.jesus.courses.springboot.apirest.app.controllers;
 import com.jesus.courses.springboot.apirest.app.models.entity.Client;
 import com.jesus.courses.springboot.apirest.app.models.services.IClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +22,7 @@ public class ClientRestController {
     }
 
     @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Client> index() {
         return clientService.findAll();
     }
