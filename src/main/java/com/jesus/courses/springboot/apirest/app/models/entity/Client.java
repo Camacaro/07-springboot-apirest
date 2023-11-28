@@ -1,6 +1,9 @@
 package com.jesus.courses.springboot.apirest.app.models.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 import java.util.Date;
 
@@ -16,10 +19,16 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty(message = "no puede estar vacío")
+    @Size(min = 4, max = 12, message = "el tamaño tiene que estar entre 4 y 12")
     @Column(nullable = false)
     private String name;
+
+    @NotEmpty(message = "no puede estar vacío")
     private String lastname;
 
+    @Email(message = "no es una dirección de correo válida")
+    @NotEmpty(message = "no puede estar vacío")
     @Column(nullable = false, unique = true)
     private String email;
 

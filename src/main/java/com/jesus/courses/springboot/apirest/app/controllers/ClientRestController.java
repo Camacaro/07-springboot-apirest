@@ -3,16 +3,21 @@ package com.jesus.courses.springboot.apirest.app.controllers;
 import com.jesus.courses.springboot.apirest.app.models.dao.RequestResponse;
 import com.jesus.courses.springboot.apirest.app.models.entity.Client;
 import com.jesus.courses.springboot.apirest.app.models.services.IClientService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RestController
@@ -58,8 +63,11 @@ public class ClientRestController {
     @PostMapping("/")
     @PreAuthorize("hasRole('ADMIN')")
     // @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<RequestResponse> save(@RequestBody Client client) {
+    public ResponseEntity<RequestResponse> save(@Valid @RequestBody Client client, BindingResult result) {
         RequestResponse response = new RequestResponse();
+
+        if (handleBodyErrors(result, response)) return response.respond();
+
         Client newClient = null;
         try {
             newClient = clientService.save(client);
@@ -83,9 +91,15 @@ public class ClientRestController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<RequestResponse> update(@PathVariable Long id, @RequestBody Client client) {
+    public ResponseEntity<RequestResponse> update(
+            @Valid @RequestBody Client client,
+            BindingResult result,
+            @PathVariable Long id
+    ) {
         RequestResponse response = new RequestResponse();
         Client currectClient = null;
+
+        if (handleBodyErrors(result, response)) return response.respond();
 
         try {
             currectClient = clientService.findById(id);
@@ -112,6 +126,21 @@ public class ClientRestController {
         }
 
         return response.respond();
+    }
+
+    private boolean handleBodyErrors(BindingResult result, RequestResponse response) {
+        if (result.hasErrors()) {
+            List<String> errors = result.getFieldErrors()
+                    .stream()
+                    .map(error -> "El campo: '" + error.getField() + "' " + error.getDefaultMessage())
+                    .toList();
+
+            response.setPayload("errors", errors);
+            response.setMessage("Error al crear cliente");
+            response.setStatus(HttpStatus.BAD_REQUEST);
+            return true;
+        }
+        return false;
     }
 
 //    @DeleteMapping("/{id}")
